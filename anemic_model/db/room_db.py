@@ -27,7 +27,7 @@ class SQLRoomDatabase(RoomDatabase):
         self.db.execute(
             """
             INSERT INTO rooms (room_id, name, number_of_seats)
-            VALUES (room_id, name, number_of_seats)
+            VALUES (:room_id, :name, :number_of_seats)
             """,
             room.json()
         )
