@@ -1,7 +1,5 @@
 
 
-
-
 class BookService:
     def sell(self):
         # operuje na swoich danych

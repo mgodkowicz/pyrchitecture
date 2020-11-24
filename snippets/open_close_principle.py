@@ -1,7 +1,126 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from datetime import datetime
 
 # examples translated to Python from https://bottega.com.pl/pdf/materialy/receptury/ocp.pdf
+
+
+def generate_offer(order: Order) -> Offer:
+    offer = Offer(order.client)
+
+    for product in order.get_ordered_products():
+        product_price = product.price
+        if product.quantity > 10:
+            product_price = product.price * 0.9
+
+        offer.addItem(product, product_price)
+
+    return offer
+
+
+def generate_offer(order: Order) -> Offer:
+    offer = Offer(order.client)
+
+    for product in order.get_ordered_products():
+        product_price = product.price
+
+        if order.client.is_regular:
+            # imagine more complex logic here
+            if product.quantity > 10:
+                discount = 0.9  # complicated logic
+                product_price = product_price * discount
+            elif product.quantity > 5:
+                product_price = product_price * 0.95
+        elif order.client.is_vip:
+            discount = 0.9  # complicated logic
+            product_price = product_price * discount
+        else:
+            if product.quantity > 15:
+                # imagine more complex logic here
+                product_price = product_price * 0.05
+
+        offer.addItem(product, product_price)
+
+    return offer
+
+
+# HOW
+class DiscountPolicy(ABC):
+    @abstractmethod
+    def calculate(self, product: Product) -> Price:
+        pass
+
+
+class RegularClientDiscountPolicy(DiscountPolicy):
+    def calculate(self, product: Product) -> Price:
+        # complex logic
+        if product.quantity > 10:
+            discount = 0.9  # complicated logic
+            return product_price * discount
+        elif product.quantity > 5:
+            return product_price * 0.95
+
+
+class VIPClientDiscountPolicy(DiscountPolicy):
+    def calculate(self, product: Product) -> Price:
+        # complex logic
+        return product.price * 0.9
+
+
+class NewClientDiscountPolicy(DiscountPolicy):
+    def calculate(self, product: Product) -> Price:
+        # complex logic
+        if product.quantity > 15:
+            return product.price * 0.95
+
+
+# WHY
+class BidderFactory:
+    def create(self, client, *args) -> Bidder:
+        if client.is_vip:
+            return Bidder(VIPClientDiscountPolicy())
+        if client.is_regular:
+            return Bidder(RegularClientDiscountPolicy())
+        return Bidder(NewClientDiscountPolicy())
+
+
+# WHAT is stable. It shouldn't change in the feature.
+class Bidder:
+    def __init__(self, discount_policy: DiscountPolicy):
+        self.discount_policy = discount_policy
+
+    def generate_offer(self, order: Order) -> Offer:
+        offer = Offer(client)
+
+        for product in order.get_ordered_products():
+            offer.add_item(product, self.discount_policy.calculate(product))
+
+        return offer
+
+
+def new_client_discount_calculator(product):
+    return
+
+
+def vip_client_discount_calculator(product):
+    return
+
+
+def discount_calculator_factory(client):
+    if client.is_vip:
+        return vip_client_discount_calculator
+    return new_client_discount_calculator
+
+
+def generate_offer(order: Order, discount_calculator=new_client_discount_calculator) -> Offer:
+    offer = Offer(client)
+
+    for product in order.get_ordered_products():
+        offer.add_item(product, discount_calculator(product))
+
+    return offer
+
+
+generate_offer(order, discount_calculator_factory(client))
 
 
 # anty-pattern
@@ -42,7 +161,7 @@ class DiscountStrategy:
 
 class Reservation:
     def __init__(self):
-        self.products: List[Product]
+        self.products: List[Product] = []
 
     def generate_pricing_plan(self, client, discount_strategy: DiscountStrategy) -> PricingPlan:
         pricing_plan = PricingPlan(client)
