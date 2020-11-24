@@ -9,7 +9,7 @@ from uuid import uuid4
 
 from pydantic import UUID4
 
-from aggreagates.common import success, failure
+from aggreagates.common.result import Result, success, failure
 
 
 @dataclass
@@ -20,7 +20,7 @@ class Currency:
 @dataclass
 class Money:
     amount: Decimal
-    currency: Currency
+    currency: str
 
     def __gt__(self, other: "Money"):
         if isinstance(other, Money):
@@ -30,24 +30,32 @@ class Money:
     def decrease(self, amount):
         self.amount -= amount
 
+    def increase(self, amount):
+        self.amount += amount
 
-# Entity / Aggregate?
+
 @dataclass
-class Account:
-    name: str
+class CreditCard:
+    id: UUID4
     balance: Money
 
-    def pay(self, amount: Money):
-        if self.balance > amount:
-            self.balance.decrease(amount)
+    def withdraw(self, withdraw_amount: Money) -> Result:
+        if self._not_enough_money(withdraw_amount):
             return failure("No money!")
 
-        print('Money left: ', self.balance)
+        self.balance.decrease(withdraw_amount)
+
         return success()
+
+    def repay(self, repay_amount: Money) -> None:
+        self.balance.increase(repay_amount)
+
+    def _not_enough_money(self, withdraw_amount: Money) -> bool:
+        return withdraw_amount > self.balance
 
 
 # domain service
-def transfer_money(from_account: Account, to_account: Account, amount: Money):
+def transfer_money(from_account: CreditCard, to_account: CreditCard, amount: Money):
     if not from_account.balance > amount:
         return failure("no money")
 
