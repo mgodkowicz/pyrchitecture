@@ -3,7 +3,7 @@ from uuid import uuid4
 
 from pydantic import UUID4
 
-from event_sourcing.order import Money, OrderItem
+from event_sourcing.shared import OrderItem, Money
 from event_sourcing.store import MongoOrderStore
 from infrastructure.db import db
 

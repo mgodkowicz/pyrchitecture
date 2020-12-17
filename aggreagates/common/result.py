@@ -19,8 +19,14 @@ class Result:
     ) -> None:
         self.result_instance = result_class(*args)
 
+    def __bool__(self):
+        return self.is_success()
+
     def is_success(self) -> bool:
         return isinstance(self.result_instance, Success)
+
+    def is_failure(self) -> bool:
+        return isinstance(self.result_instance, Failure)
 
     @property
     def value(self) -> Any:
