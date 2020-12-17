@@ -26,6 +26,14 @@ class Result:
     def value(self) -> Any:
         return self.result_instance.value
 
+    @classmethod
+    def success(cls, value: Any = None) -> "Result":
+        return Result(Success, value)
+
+    @classmethod
+    def failure(cls, value: Any) -> "Result":
+        return Result(Failure, value)
+
 
 success = partial(Result, Success)
 failure = partial(Result, Failure)
