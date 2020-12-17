@@ -1,0 +1,118 @@
+version: '3.7'
+
+# ==============================
+# Extensions
+# ==============================
+x-container-defaults:
+  &defaults
+  restart: always
+  env_file:
+    - .env
+
+x-backend-container:
+  &backend-defaults
+  build:
+    context: ./backend
+    dockerfile: ./build/Dockerfile
+  image: git.perceptyx.com:4567/polish/belweder/edm/backend:latest
+  depends_on:
+    - redis
+    - mongo
+  volumes:
+    - ./backend:/code
+  tty: true
+  stdin_open: true
+  environment:
+    - PYTHONUNBUFFERED=1
+    - DATADOG_TRACE_ENABLED=0
+  networks:
+    - default
+    - perceptyx_general
+# ==============================
+
+
+services:
+  backend:
+    <<: *backend-defaults
+    <<: *defaults
+    ports:
+      - 8000:8000
+    command:
+      - uvicorn
+      - src.api.app:app
+      - --reload
+      - --reload-dir
+      - src/
+      - --host
+      - 0.0.0.0
+
+  worker:
+    <<: *backend-defaults
+    <<: *defaults
+    tty: false
+    stdin_open: false
+    command: watchmedo auto-restart -d ./ -p '*.py' --recursive -- celery --app src.worker worker --loglevel=${LOGGING_LEVEL}
+
+  frontend:
+    <<: *defaults
+    build:
+      context: ./frontend
+      dockerfile: ./build/Dockerfile
+    image: git.perceptyx.com:4567/polish/belweder/edm/frontend:latest
+    environment:
+      VUE_APP_SWAMPY: $SWAMPY
+      VUE_APP_ONELOGIN_URL: $ONELOGIN_URL
+      VUE_APP_ONELOGIN_CLIENT_ID: $ONELOGIN_CLIENT_ID
+      VUE_APP_ONELOGIN_REDIRECT_URI: $ONELOGIN_REDIRECT_URI
+    volumes:
+      - /code/node_modules
+      - ./frontend:/code
+    command: yarn serve
+    ports:
+      - 8888:8888
+    networks:
+      - default
+      - perceptyx_general
+
+  redis:
+    <<: *defaults
+    image: bitnami/redis:5.0.8
+    volumes:
+      - redis:/bitnami/redis/data
+    ports:
+      - 6379:6379
+
+  mongo:
+    <<: *defaults
+    image: mongo
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo:/data/mongodb
+
+  mongo-express:
+    << : *defaults
+    image: mongo-express
+    ports:
+      - 8081:8081
+
+  mysql-local:
+    <<: *defaults
+    image: mysql:5.6
+    command:
+      --max_allowed_packet=32M
+      --default-authentication-plugin=mysql_native_password
+    volumes:
+      - mysql-data:/var/lib/mysql
+    ports:
+      - 3333:3306
+
+networks:
+  perceptyx_general:
+    external:
+      name: perceptyx_general
+
+volumes:
+  redis:
+  mongo:
+  mysql-data:
