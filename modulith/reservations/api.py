@@ -3,7 +3,7 @@ from ninja import NinjaAPI
 from config.root import injector
 from reservations.service import SomeKindService
 
-api = NinjaAPI()
+api = NinjaAPI(version="1")
 
 
 @api.get("/add")
