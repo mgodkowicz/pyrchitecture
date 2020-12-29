@@ -111,6 +111,7 @@ class CarAggregateRoot(models.Model):
     def reservations_mem(self):
         return list(self.reservations.all())
 
+    # transaction decorator should be on service layer
     @transaction.atomic()
     def reserve(self, booker: UUID4, period: DateTimeRange):
         result = self.overlaps(period)
@@ -182,3 +183,8 @@ class TestAggregate(TestCase):
         aggregate.save()
 
         assert result.is_failure()
+
+
+# Another implementations
+# - use one model for storage and many objects for logic
+# - Save data in json fileds and parse to pydantic objects
