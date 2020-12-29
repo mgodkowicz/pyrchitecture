@@ -50,6 +50,10 @@ class EventPublisher(ABC):
     def publish(self, event: Event) -> None:
         pass
 
+    @abstractmethod
+    def subscribe(self, event: Event, callback: callable):
+        pass
+
 
 class InMemoryEventPublisher(EventPublisher):
     def __init__(self, handlers: Optional[dict] = None) -> None:

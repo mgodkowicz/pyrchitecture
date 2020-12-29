@@ -13,6 +13,10 @@ class EventPublisher(ABC):
     def publish(self, event: DomainEvent) -> None:
         pass
 
+    @abstractmethod
+    def subscribe(self, event: DomainEvent, callback: callable):
+        pass
+
 
 class InMemoryEventPublisher(EventPublisher):
     def __init__(self, handlers: Optional[dict] = None) -> None:
@@ -39,10 +43,8 @@ class InMemoryEventPublisher(EventPublisher):
                     event.dict(),
                     handler,
                 )
-                handler(**event.dict())
+                handler(event)
+                # handler(**event.dict())
 
         except KeyError:
             logger.warning("Event %s do not have any handlers", type(event))
-
-
-event_publisher = InMemoryEventPublisher()

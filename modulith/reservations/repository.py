@@ -1,7 +1,3 @@
-from injector import singleton
-
-
-@singleton
 class Repository:
     def get(self):
         pass
