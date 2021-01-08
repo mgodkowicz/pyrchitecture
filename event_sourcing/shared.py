@@ -10,8 +10,16 @@ class Money(BaseModel):
             if other.currency == self.currency:
                 return Money(amount=self.amount + other.amount, currency=self.currency)
             else:
-                raise ValueError('no no ')
-        raise ValueError('no no ')
+                raise ValueError("no no ")
+        raise ValueError("no no ")
+
+    def __sub__(self, other):
+        if isinstance(other, Money):
+            if other.currency == self.currency:
+                return Money(amount=self.amount - other.amount, currency=self.currency)
+            else:
+                raise ValueError("no no ")
+        raise ValueError("no no ")
 
 
 class OrderItem(BaseModel):

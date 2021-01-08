@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import TypeVar, Generic, Any, get_args
+from typing import TypeVar, Generic, Any, get_args, Dict, List
 
+from pydantic import UUID4
 from pymongo.database import Database
 
 from event_sourcing.order import Order
@@ -34,16 +35,13 @@ class EntityStore(ABC, Generic[T]):
 
 
 class MongoOrderStore(EntityStore[Order]):
-
     def __init__(self, db: Database) -> None:
         self.collection = db["orders"]
 
     def save(self, entity: T) -> None:
         changes = entity.changes
         # TODO parsing from domain event to inf event
-        self.collection.insert_many(
-
-        )
+        self.collection.insert_many()
 
     def load(self, id_: str) -> T:
         db_events = self.collection.find({"order_id": id_})
@@ -56,3 +54,19 @@ class MongoOrderStore(EntityStore[Order]):
             entity.when(event)
 
         return entity
+
+
+class InMemoryOrderStore(EntityStore[Order]):
+    def __init__(self):
+        self.stored_events: Dict[UUID4, List] = {}
+
+    def save(self, entity: T) -> None:
+        current_stream = self.stored_events.setdefault(entity.order_id, [])
+        current_stream.extend(list(entity.pending_events))
+        self.stored_events[entity.order_id] = current_stream
+        entity.flush_events()
+
+    def load(self, id: str) -> T:
+        return self.model_class.recreate_from(
+            self.stored_events.get(id, []), self.model_class.initial(id)
+        )
