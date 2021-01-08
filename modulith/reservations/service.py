@@ -1,8 +1,7 @@
 from injector import inject
 
-from common.domain_event import DomainEvent
 from common.event_publisher import EventPublisher
-from reservations.events import IntegersAdded
+from reservations.events import IntegersAdded, integers_added
 from reservations.repository import Repository
 
 
@@ -15,4 +14,5 @@ class SomeKindService:
     def add(self, a: int, b: int) -> int:
         print(id(self.repository))
         self.event_publisher.publish(IntegersAdded(num_one=a, num_sec=b))
+        integers_added.send(sender=self.__class__, event=IntegersAdded(num_one=a, num_sec=b))
         return a + b
