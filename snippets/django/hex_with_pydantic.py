@@ -1,12 +1,17 @@
+import uuid
 
-class Modelicho(models.Model):
+from django.db import models
+from pydantic import BaseModel, UUID4
+
+
+class EntityORM(models.Model):
     id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False
     )
     stuff = models.CharField(max_length=10)
 
 
-class DomainModelicho(BaseModel):
+class DomainEntity(BaseModel):
     id: UUID4
     stuff: str
 
@@ -15,11 +20,11 @@ class DomainModelicho(BaseModel):
 
 
 def test_stuff():
-    m = Modelicho(stuff='123')
+    m = EntityORM(stuff='123')
     print(m)
-    domain = DomainModelicho.from_orm(m)
+    domain = DomainEntity.from_orm(m)
 
     print('dd', domain)
 
-    m2 = Modelicho(**domain.dict())
+    m2 = EntityORM(**domain.dict())
     print(m2)
