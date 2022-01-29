@@ -3,3 +3,5 @@ django
 django-ninja
 djangorestframework
 injector
+mutmut
+bson

@@ -3,7 +3,7 @@ from abc import ABC
 from typing import Any, Generator
 
 from bson import ObjectId
-from bson.errors import InvalidId
+from bson.objectid import InvalidId
 from pydantic import BaseModel
 
 

@@ -5,6 +5,7 @@ from rest_framework.response import Response
 
 from config.root import injector
 from reservations.service import SomeKindService
+from reservations.views import NotesViewSet
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
@@ -31,3 +32,4 @@ class UserViewSet(viewsets.ModelViewSet):
 
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet)
+router.register("notes", NotesViewSet, basename="notes")
